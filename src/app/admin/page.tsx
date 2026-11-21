@@ -38,6 +38,7 @@ import { getAiSuggestedMediaList, AiSuggestedMedia } from '@/lib/aiMedia';
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'pending' | 'published' | 'top-stories' | 'breaking' | 'reporters' | 'audit' | 'analytics'>('pending');
   const [pendingSubTab, setPendingSubTab] = useState<'ai' | 'human'>('ai');
+  const [reporterSubFilter, setReporterSubFilter] = useState<'all' | 'pending' | 'published' | 'rejected'>('all');
 
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -362,6 +363,31 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleQuickApprove = async (articleId: string) => {
+    try {
+      setActionLoading(true);
+      const res = await fetch(`/api/articles/${articleId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'PUBLISHED',
+          reviewedBy: currentUser?.name || 'Administrator',
+          actor: { name: currentUser?.name || 'Administrator', role: 'ADMIN' }
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchAdminData();
+      } else {
+        alert(data.error || 'Failed to approve');
+      }
+    } catch (err: any) {
+      alert(err.message || 'Error occurred');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleRejectStory = async () => {
     if (!selectedReviewArticle) return;
     if (!rejectionReason.trim()) {
@@ -558,6 +584,19 @@ export default function AdminDashboard() {
   const publishedArticles = articles.filter(a => a.status === 'PUBLISHED');
   const featuredArticles = articles.filter(a => a.status === 'PUBLISHED' && a.isFeatured);
   const nonFeaturedPublished = articles.filter(a => a.status === 'PUBLISHED' && !a.isFeatured);
+
+  // Reporter Ground Dispatches Filter (रिपोर्टर पोर्टल की ख़बरें)
+  const reporterDispatches = articles.filter(a => !a.isAiGenerated);
+  const pendingReporterDispatches = reporterDispatches.filter(a => a.status === 'PENDING_REVIEW' || a.status === 'UNDER_REVIEW');
+  const publishedReporterDispatches = reporterDispatches.filter(a => a.status === 'PUBLISHED');
+  const rejectedReporterDispatches = reporterDispatches.filter(a => a.status === 'REJECTED');
+
+  const filteredReporterList = reporterDispatches.filter(a => {
+    if (reporterSubFilter === 'pending') return a.status === 'PENDING_REVIEW' || a.status === 'UNDER_REVIEW';
+    if (reporterSubFilter === 'published') return a.status === 'PUBLISHED';
+    if (reporterSubFilter === 'rejected') return a.status === 'REJECTED';
+    return true;
+  });
 
   if (authLoading) {
     return (
@@ -837,6 +876,21 @@ export default function AdminDashboard() {
               >
                 <History className="w-4 h-4" />
                 <span>Audit Logs ({auditLogs.length})</span>
+              </button>
+
+              {/* Reporter Reports / ग्राउंड रिपोर्ट्स Tab (Audit Logs ke bagal me) */}
+              <button
+                onClick={() => setActiveTab('reporters')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 ${activeTab === 'reporters' ? 'bg-red-600 text-white shadow-lg shadow-red-900/40' : 'bg-slate-800 text-slate-400 hover:text-white'
+                  }`}
+              >
+                <FileText className="w-4 h-4" />
+                <span>Reporter Reports ({reporterDispatches.length})</span>
+                {pendingReporterDispatches.length > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-[10px] bg-amber-400 text-slate-950 rounded-full font-extrabold animate-pulse">
+                    {pendingReporterDispatches.length} New
+                  </span>
+                )}
               </button>
             </div>
 
@@ -1666,6 +1720,242 @@ export default function AdminDashboard() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* TAB 5: REPORTER DISPATCHES / GROUND REPORTS (Audit Logs ke bagal me) */}
+          {activeTab === 'reporters' && (
+            <div className="p-4 sm:p-6 space-y-4">
+              {/* Header & Sub-filter bar */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                <div>
+                  <h4 className="text-sm font-bold text-white flex items-center space-x-2">
+                    <span className="p-1.5 bg-red-600/20 text-red-400 rounded-lg">
+                      <FileText className="w-4 h-4" />
+                    </span>
+                    <span>ग्राउंड रिपोर्टर डिस्पैच (Reporter Field Dispatches)</span>
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    रिपोर्टर पोर्टल (/reporter) से सबमिट किए गए सभी समाचार, तस्वीरें, वीडियो और ग्राउंड रिपोर्ट्स
+                  </p>
+                </div>
+
+                <div className="flex items-center space-x-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+                  <button
+                    onClick={() => setReporterSubFilter('all')}
+                    className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${
+                      reporterSubFilter === 'all'
+                        ? 'bg-red-600 text-white shadow-xs'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    सभी ({reporterDispatches.length})
+                  </button>
+                  <button
+                    onClick={() => setReporterSubFilter('pending')}
+                    className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer flex items-center space-x-1 ${
+                      reporterSubFilter === 'pending'
+                        ? 'bg-amber-600 text-white shadow-xs'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <span>समीक्षा हेतु (Pending)</span>
+                    <span className="text-[10px] px-1.5 py-0.2 bg-amber-500/30 rounded-full font-bold">
+                      {pendingReporterDispatches.length}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setReporterSubFilter('published')}
+                    className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${
+                      reporterSubFilter === 'published'
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    प्रकाशित ({publishedReporterDispatches.length})
+                  </button>
+                  <button
+                    onClick={() => setReporterSubFilter('rejected')}
+                    className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${
+                      reporterSubFilter === 'rejected'
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    अस्वीकृत ({rejectedReporterDispatches.length})
+                  </button>
+                </div>
+              </div>
+
+              {/* Reports Grid / List */}
+              {filteredReporterList.length === 0 ? (
+                <div className="text-center py-12 bg-slate-950 rounded-2xl border border-slate-800/80 space-y-3">
+                  <div className="w-12 h-12 bg-slate-800/60 text-slate-400 rounded-full flex items-center justify-center mx-auto">
+                    <FileText className="w-6 h-6" />
+                  </div>
+                  <h5 className="font-bold text-sm text-slate-300">
+                    इस फ़िल्टर में कोई रिपोर्टर डिस्पैच नहीं है
+                  </h5>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                    रिपोर्टर डेस्क (/reporter) से सबमिट किए जाने वाले समाचार यहां सीधे दिखाई देंगे।
+                  </p>
+                  <Link
+                    href="/reporter"
+                    target="_blank"
+                    className="inline-flex items-center space-x-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-lg transition"
+                  >
+                    <span>नया ग्राउंड समाचार दर्ज करें (/reporter)</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-3">
+                  {filteredReporterList.map((item) => (
+                    <div
+                      key={item.id}
+                      className="bg-slate-950 p-4 sm:p-5 rounded-2xl border border-slate-800 hover:border-slate-700 transition space-y-3"
+                    >
+                      {/* Top Meta Bar */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-800 text-slate-200 border border-slate-700">
+                            {item.categoryName}
+                          </span>
+                          <span className="flex items-center space-x-1 text-slate-400 text-[11px]">
+                            <Users className="w-3.5 h-3.5 text-indigo-400" />
+                            <strong className="text-slate-200 font-semibold">{item.authorName || 'News Target Reporter'}</strong>
+                            <span className="text-slate-500 text-[10px]">({item.authorRole || 'ग्राउंड रिपोर्टर'})</span>
+                          </span>
+                          <span className="text-slate-500 text-[11px] flex items-center space-x-1">
+                            <Clock className="w-3 h-3" />
+                            <span>
+                              {new Date(item.createdAt).toLocaleDateString('hi-IN', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric'
+                              })} • {new Date(item.createdAt).toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </span>
+                        </div>
+
+                        {/* Status Badge */}
+                        <div>
+                          {item.status === 'PENDING_REVIEW' && (
+                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center space-x-1">
+                              <Clock className="w-3.5 h-3.5" />
+                              <span>समीक्षा हेतु प्रतीक्षारत (Pending Review)</span>
+                            </span>
+                          )}
+                          {item.status === 'PUBLISHED' && (
+                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center space-x-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>प्रकाशित (Live on Portal)</span>
+                            </span>
+                          )}
+                          {item.status === 'REJECTED' && (
+                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center space-x-1">
+                              <XCircle className="w-3.5 h-3.5" />
+                              <span>अस्वीकृत (Rejected)</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Main Title & Media Preview */}
+                      <div className="flex flex-col md:flex-row gap-4">
+                        {(item.coverImage || (item.gallery && item.gallery.length > 0)) && (
+                          <div className="w-full md:w-44 h-28 rounded-xl overflow-hidden bg-slate-900 shrink-0 border border-slate-800 relative">
+                            <img
+                              src={item.coverImage || (item.gallery && item.gallery[0])}
+                              alt={item.title}
+                              className="w-full h-full object-cover"
+                            />
+                            {item.gallery && item.gallery.length > 1 && (
+                              <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 bg-black/80 text-white rounded text-[10px] font-semibold flex items-center space-x-1">
+                                <ImageIcon className="w-3 h-3" />
+                                <span>+{item.gallery.length}</span>
+                              </span>
+                            )}
+                            {((item.videos && item.videos.length > 0) || item.videoUrl) && (
+                              <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-red-600/90 text-white rounded text-[10px] font-bold flex items-center space-x-1">
+                                <Video className="w-3 h-3" />
+                                <span>Video</span>
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="flex-1 space-y-1.5">
+                          <h4 className="font-bold text-white text-sm sm:text-base leading-snug hover:text-red-400 transition">
+                            {item.title}
+                          </h4>
+                          <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
+                            {item.summary}
+                          </p>
+                          {item.caption && (
+                            <p className="text-[11px] text-slate-400 italic">
+                              फ़ोटो विवरण: {item.caption}
+                            </p>
+                          )}
+                          {item.rejectionReason && item.status === 'REJECTED' && (
+                            <div className="p-2 bg-rose-950/40 border border-rose-800/60 rounded-lg text-[11px] text-rose-300">
+                              <strong>अस्वीकृति कारण:</strong> {item.rejectionReason}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Actions Footer */}
+                      <div className="pt-3 border-t border-slate-850 flex flex-wrap items-center justify-between gap-2">
+                        <div className="text-[11px] text-slate-500 font-mono">
+                          ID: <span className="text-slate-400">{item.id}</span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            onClick={() => openReviewModal(item)}
+                            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-semibold rounded-lg transition flex items-center space-x-1.5 cursor-pointer border border-slate-700"
+                          >
+                            <Edit3 className="w-3.5 h-3.5 text-amber-400" />
+                            <span>समीक्षा व संपादन (Review &amp; Edit)</span>
+                          </button>
+
+                          {item.status === 'PENDING_REVIEW' && (
+                            <button
+                              onClick={() => handleQuickApprove(item.id)}
+                              disabled={actionLoading}
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition flex items-center space-x-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>त्वरित अनुमोदन (Quick Approve)</span>
+                            </button>
+                          )}
+
+                          {item.status === 'PUBLISHED' && (
+                            <Link
+                              href={`/article/${item.slug}`}
+                              target="_blank"
+                              className="px-3 py-1.5 bg-blue-600/20 text-blue-300 hover:bg-blue-600 hover:text-white border border-blue-500/30 text-xs font-semibold rounded-lg transition flex items-center space-x-1.5 cursor-pointer"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>वेबसाइट पर देखें</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </Link>
+                          )}
+
+                          <button
+                            onClick={() => handleDeleteArticle(item.id)}
+                            className="px-2.5 py-1.5 bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-600/30 text-xs rounded-lg transition cursor-pointer"
+                            title="डिलीट करें"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </section>
