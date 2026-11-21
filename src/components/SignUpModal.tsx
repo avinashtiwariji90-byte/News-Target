@@ -1,0 +1,274 @@
+'use client';
+
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { X, UserPlus, LogIn, CheckCircle, Shield, User, Lock, Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
+
+interface SignUpModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
+  const [mode, setMode] = useState<'signup' | 'login'>('signup');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [userRole, setUserRole] = useState<'reader' | 'citizen_reporter'>('reader');
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg('');
+
+    if (!email || !password || (mode === 'signup' && !fullName)) {
+      setErrorMsg('कृपया सभी ज़रूरी फ़ील्ड भरें (Please fill all required fields).');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setIsSuccess(true);
+      try {
+        const userData = {
+          name: fullName || email.split('@')[0],
+          email,
+          phone,
+          role: userRole,
+          createdAt: new Date().toISOString()
+        };
+        localStorage.setItem('nt_user', JSON.stringify(userData));
+      } catch (e) {
+        // ignore
+      }
+    }, 600);
+  };
+
+  const resetModal = () => {
+    setIsSuccess(false);
+    setErrorMsg('');
+    setFullName('');
+    setEmail('');
+    setPhone('');
+    setPassword('');
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-xs flex justify-center items-center p-4 animate-in fade-in duration-150">
+      <div 
+        className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="bg-gradient-to-r from-red-600 to-rose-700 px-6 py-4 text-white flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className="p-1.5 bg-white/10 rounded-lg">
+              {mode === 'signup' ? <UserPlus className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
+            </div>
+            <div>
+              <h3 className="font-bold text-base leading-tight">
+                {mode === 'signup' ? 'नया खाता बनाएं (Sign Up)' : 'लॉगिन करें (Sign In)'}
+              </h3>
+              <p className="text-[11px] text-red-100">न्यूज़ टारगेट डिजिटल न्यूज़ नेटवर्क</p>
+            </div>
+          </div>
+          <button 
+            onClick={resetModal}
+            className="p-1.5 rounded-lg hover:bg-white/20 text-white/90 transition cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Tab switchers */}
+        <div className="flex border-b border-slate-200 bg-slate-50 text-xs font-semibold">
+          <button
+            onClick={() => { setMode('signup'); setIsSuccess(false); setErrorMsg(''); }}
+            className={`flex-1 py-2.5 text-center transition cursor-pointer ${
+              mode === 'signup'
+                ? 'bg-white text-red-600 border-b-2 border-red-600'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Sign Up (रजिस्ट्रेशन)
+          </button>
+          <button
+            onClick={() => { setMode('login'); setIsSuccess(false); setErrorMsg(''); }}
+            className={`flex-1 py-2.5 text-center transition cursor-pointer ${
+              mode === 'login'
+                ? 'bg-white text-red-600 border-b-2 border-red-600'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Sign In (लॉगिन)
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          {isSuccess ? (
+            <div className="text-center py-6 space-y-3">
+              <div className="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle className="w-8 h-8" />
+              </div>
+              <h4 className="font-bold text-slate-800 text-lg">
+                {mode === 'signup' ? 'सफलतापूर्वक खाता बन गया!' : 'लॉगिन सफल!'}
+              </h4>
+              <p className="text-xs text-slate-600 max-w-xs mx-auto">
+                स्वागत है! आपका खाता सक्रिय हो चुका है। आप ताज़ा ख़बरें और विशेष बुलेटिन प्राप्त कर सकते हैं।
+              </p>
+              <button
+                onClick={resetModal}
+                className="mt-4 px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-xs rounded-lg transition"
+              >
+                पोर्टल पर जारी रखें
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+              {errorMsg && (
+                <div className="p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-lg text-xs">
+                  {errorMsg}
+                </div>
+              )}
+
+              {mode === 'signup' && (
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">पूरा नाम (Full Name) *</label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                    <input
+                      type="text"
+                      required
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="e.g. Rahul Sharma"
+                      className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-hidden text-xs"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">ईमेल पता (Email Address) *</label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="name@example.com"
+                    className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-hidden text-xs"
+                  />
+                </div>
+              </div>
+
+              {mode === 'signup' && (
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">मोबाइल नंबर / शहर (Optional)</label>
+                  <div className="relative">
+                    <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+91 98765 43210 / Bhopal"
+                      className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-hidden text-xs"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">पासवर्ड (Password) *</label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-hidden text-xs"
+                  />
+                </div>
+              </div>
+
+              {mode === 'signup' && (
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">खाते का प्रकार (Account Type)</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setUserRole('reader')}
+                      className={`p-2 rounded-lg border text-left cursor-pointer transition ${
+                        userRole === 'reader'
+                          ? 'border-red-600 bg-red-50/60 text-red-900 font-semibold'
+                          : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="block text-[11px] font-bold">📖 पाठक (Reader)</span>
+                      <span className="block text-[10px] text-slate-500">न्यूज़ अलर्ट और पर्सनलाइज़्ड फ़ीड</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUserRole('citizen_reporter')}
+                      className={`p-2 rounded-lg border text-left cursor-pointer transition ${
+                        userRole === 'citizen_reporter'
+                          ? 'border-red-600 bg-red-50/60 text-red-900 font-semibold'
+                          : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="block text-[11px] font-bold">🎙️ रिपोर्टर (Reporter)</span>
+                      <span className="block text-[10px] text-slate-500">ख़बरें व वीडियो रिपोर्ट भेजें</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition shadow-xs flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50 mt-2"
+              >
+                <span>{isSubmitting ? 'प्रक्रिया जारी है...' : mode === 'signup' ? 'नया खाता बनाएं (Create Account)' : 'लॉगिन करें (Sign In)'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </form>
+          )}
+
+          {/* Quick Staff Portals */}
+          <div className="mt-5 pt-4 border-t border-slate-200 text-center">
+            <p className="text-[11px] font-semibold text-slate-500 mb-2">स्टाफ एवं संपादकीय पोर्टल लॉगिन:</p>
+            <div className="flex items-center justify-center space-x-2">
+              <Link
+                href="/admin"
+                onClick={resetModal}
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-md border border-slate-300 transition flex items-center space-x-1"
+              >
+                <Shield className="w-3.5 h-3.5 text-red-600" />
+                <span>एडमिन डेस्क (Admin)</span>
+              </Link>
+              <Link
+                href="/reporter"
+                onClick={resetModal}
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-md border border-slate-300 transition flex items-center space-x-1"
+              >
+                <User className="w-3.5 h-3.5 text-indigo-600" />
+                <span>रिपोर्टर डेस्क (Reporter)</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

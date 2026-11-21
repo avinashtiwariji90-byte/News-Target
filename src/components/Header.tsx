@@ -15,13 +15,15 @@ import {
   Volume2,
   VolumeX,
   ChevronDown,
-  MapPin
+  MapPin,
+  UserPlus
 } from 'lucide-react';
 import { speakSoftFemaleVoice, stopSpeaking } from '@/lib/speech';
 import { Category } from '@/lib/types';
 import { LanguageCode } from '@/lib/translation';
 import { Languages } from 'lucide-react';
 import { ALL_STATES_AND_DISTRICTS, StateOption } from '@/components/StateDropdownList';
+import SignUpModal from '@/components/SignUpModal';
 
 interface HeaderProps {
   categories?: Category[];
@@ -57,6 +59,7 @@ export default function Header({
   const [currentTime, setCurrentTime] = useState('');
   const [currentDate, setCurrentDate] = useState('');
   const [isPlayingHeaderAudio, setIsPlayingHeaderAudio] = useState(false);
+  const [signUpModalOpen, setSignUpModalOpen] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -210,6 +213,16 @@ export default function Header({
                 <span>न्यूज़ बुलेटिन सुनें</span>
               </>
             )}
+          </button>
+
+          {/* Sign Up Button (Voice Bulletin ke bagal me) */}
+          <button
+            onClick={() => setSignUpModalOpen(true)}
+            className="flex items-center space-x-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white border border-red-700 transition shadow-xs cursor-pointer"
+            title="Sign Up / नया खाता बनाएं"
+          >
+            <UserPlus className="w-4 h-4 text-white" />
+            <span>Sign Up</span>
           </button>
 
           {/* Search Trigger */}
@@ -476,6 +489,12 @@ export default function Header({
           </div>
         </div>
       )}
+
+      {/* Sign Up / Sign In Modal */}
+      <SignUpModal 
+        isOpen={signUpModalOpen} 
+        onClose={() => setSignUpModalOpen(false)} 
+      />
     </header>
   );
 }
