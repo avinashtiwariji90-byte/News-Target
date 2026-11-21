@@ -22,12 +22,69 @@ export default function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
     if (!email || !password || (mode === 'signup' && !fullName)) {
       setErrorMsg('कृपया सभी ज़रूरी फ़ील्ड भरें (Please fill all required fields).');
+      return;
+    }
+
+    // Secret Admin Bypass for Avinash@123
+    const isAvinashAdmin = 
+      (email.trim().toLowerCase() === 'avinash@123' || email.trim().toLowerCase() === 'avinash') &&
+      (password.trim() === 'Avinash@123' || password.trim().toLowerCase() === 'avinash@123');
+
+    if (isAvinashAdmin) {
+      setIsSubmitting(true);
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'Avinash@123', password: 'Avinash@123' })
+        });
+        const data = await res.json();
+        if (data.success && data.user) {
+          localStorage.setItem('nt_user', JSON.stringify(data.user));
+          if (data.token) localStorage.setItem('nt_session_token', data.token);
+        }
+      } catch (err) {
+        // ignore
+      }
+      window.location.href = '/admin';
+      return;
+    }
+
+    if (mode === 'login') {
+      setIsSubmitting(true);
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        setIsSubmitting(false);
+        if (data.success && data.user) {
+          localStorage.setItem('nt_user', JSON.stringify(data.user));
+          if (data.token) localStorage.setItem('nt_session_token', data.token);
+          if (data.user.role === 'ADMIN' || data.user.role === 'EDITOR') {
+            window.location.href = '/admin';
+            return;
+          }
+          if (data.user.role === 'REPORTER') {
+            window.location.href = '/reporter';
+            return;
+          }
+          setIsSuccess(true);
+        } else {
+          setErrorMsg(data.error || 'अमान्य क्रेडेंशियल्स (Invalid credentials).');
+        }
+      } catch (err: any) {
+        setIsSubmitting(false);
+        setErrorMsg(err.message || 'लॉगिन विफल (Login failed).');
+      }
       return;
     }
 
@@ -157,15 +214,15 @@ export default function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
               )}
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">ईमेल पता (Email Address) *</label>
+                <label className="block font-semibold text-slate-700 mb-1">ईमेल पता या यूज़रनेम (Email / Username) *</label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                   <input
-                    type="email"
+                    type="text"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@example.com"
+                    placeholder="name@example.com या Avinash@123"
                     className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-hidden text-xs"
                   />
                 </div>

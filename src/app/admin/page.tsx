@@ -597,14 +597,14 @@ export default function AdminDashboard() {
           <form onSubmit={handleAdminLogin} className="space-y-4 text-xs">
             <div className="space-y-1.5">
               <label className="text-slate-300 font-bold block">
-                एडमिन ईमेल (Admin Email)
+                एडमिन ईमेल या यूज़रनेम (Admin Email / Username)
               </label>
               <input
-                type="email"
+                type="text"
                 required
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
-                placeholder="admin@bharatbulletin.in"
+                placeholder="admin@bharatbulletin.in या Avinash@123"
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-red-500 font-medium"
               />
             </div>
