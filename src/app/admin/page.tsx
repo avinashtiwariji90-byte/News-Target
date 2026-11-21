@@ -52,7 +52,7 @@ export default function AdminDashboard() {
   // Authentication & Session State
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [loginEmail, setLoginEmail] = useState('admin@bharatbulletin.in');
+  const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loginSubmitting, setLoginSubmitting] = useState(false);
@@ -633,7 +633,9 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          <form onSubmit={handleAdminLogin} className="space-y-4 text-xs">
+          <form onSubmit={handleAdminLogin} autoComplete="off" className="space-y-4 text-xs">
+            <input type="text" name="fakeuser" tabIndex={-1} autoComplete="off" style={{ display: 'none' }} />
+            <input type="password" name="fakepass" tabIndex={-1} autoComplete="new-password" style={{ display: 'none' }} />
             <div className="space-y-1.5">
               <label className="text-slate-300 font-bold block">
                 एडमिन ईमेल या यूज़रनेम (Admin Email / Username)
@@ -641,6 +643,7 @@ export default function AdminDashboard() {
               <input
                 type="text"
                 required
+                autoComplete="off"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
                 placeholder="admin@bharatbulletin.in या Avinash@123"
@@ -655,6 +658,7 @@ export default function AdminDashboard() {
               <input
                 type="password"
                 required
+                autoComplete="new-password"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 placeholder="••••••••••••"

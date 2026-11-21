@@ -20,6 +20,18 @@ export default function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Prevent browser autofill when modal opens or mode changes
+  React.useEffect(() => {
+    if (isOpen) {
+      setFullName('');
+      setEmail('');
+      setPhone('');
+      setPassword('');
+      setErrorMsg('');
+      setIsSuccess(false);
+    }
+  }, [isOpen, mode]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -147,7 +159,7 @@ export default function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
         {/* Tab switchers */}
         <div className="flex border-b border-slate-200 bg-slate-50 text-xs font-semibold">
           <button
-            onClick={() => { setMode('signup'); setIsSuccess(false); setErrorMsg(''); }}
+            onClick={() => { setMode('signup'); setIsSuccess(false); setErrorMsg(''); setFullName(''); setEmail(''); setPhone(''); setPassword(''); }}
             className={`flex-1 py-2.5 text-center transition cursor-pointer ${
               mode === 'signup'
                 ? 'bg-white text-red-600 border-b-2 border-red-600'
@@ -157,7 +169,7 @@ export default function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
             Sign Up (रजिस्ट्रेशन)
           </button>
           <button
-            onClick={() => { setMode('login'); setIsSuccess(false); setErrorMsg(''); }}
+            onClick={() => { setMode('login'); setIsSuccess(false); setErrorMsg(''); setFullName(''); setEmail(''); setPhone(''); setPassword(''); }}
             className={`flex-1 py-2.5 text-center transition cursor-pointer ${
               mode === 'login'
                 ? 'bg-white text-red-600 border-b-2 border-red-600'
@@ -189,7 +201,11 @@ export default function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+            <form onSubmit={handleSubmit} autoComplete="off" className="space-y-3.5 text-xs">
+              {/* Chrome/Edge autofill prevention traps */}
+              <input type="text" name="prevent_autofill_user" tabIndex={-1} autoComplete="off" style={{ display: 'none' }} />
+              <input type="password" name="prevent_autofill_pwd" tabIndex={-1} autoComplete="new-password" style={{ display: 'none' }} />
+
               {errorMsg && (
                 <div className="p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-lg text-xs">
                   {errorMsg}
@@ -204,6 +220,7 @@ export default function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
                     <input
                       type="text"
                       required
+                      autoComplete="off"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="e.g. Rahul Sharma"
@@ -220,6 +237,7 @@ export default function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
                   <input
                     type="text"
                     required
+                    autoComplete="off"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@example.com या Avinash@123"
@@ -234,7 +252,8 @@ export default function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
                   <div className="relative">
                     <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                     <input
-                      type="tel"
+                      type="text"
+                      autoComplete="off"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="+91 98765 43210 / Bhopal"
@@ -251,6 +270,7 @@ export default function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
                   <input
                     type="password"
                     required
+                    autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
