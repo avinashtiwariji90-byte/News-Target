@@ -70,17 +70,4 @@ The system includes complete schema definitions for PostgreSQL and Prisma:
 
 ---
 
-## 🚀 Running Locally
 
-The application is running live on:
-**[http://localhost:3000](http://localhost:3000)**
-
-### Quick Links:
-- **Public Portal**: `http://localhost:3000`
-- **Reporter Workspace**: `http://localhost:3000/reporter`
-- **Admin Decision Desk**: `http://localhost:3000/admin`
-- **Article Example**: `http://localhost:3000/article/india-sovereign-ai-compute-cluster-launch`
-- **API Overview**: `http://localhost:3000/api/stats`
-
-### Launcher Scripts:
-- Double click `c:\xampp\htdocs\START_BHARAT_BULLETIN.bat` to launch anytime.
