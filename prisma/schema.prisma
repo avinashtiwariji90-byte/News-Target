@@ -1,0 +1,188 @@
+// Prisma Schema for Bharat Bulletin - AI-Powered Digital News Platform
+// Target: PostgreSQL (Compatible with SQLite as well)
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  ADMIN
+  REPORTER
+  EDITOR
+}
+
+enum ArticleStatus {
+  DRAFT
+  PENDING_REVIEW
+  UNDER_REVIEW
+  APPROVED
+  PUBLISHED
+  REJECTED
+}
+
+enum Priority {
+  FLASH
+  URGENT
+  HIGH
+  NORMAL
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  role          UserRole  @default(REPORTER)
+  bureau        String    @default("National Desk")
+  avatar        String?
+  phone         String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  articles      Article[] @relation("UserArticles")
+  reviews       ApprovalHistory[] @relation("ReviewerApprovals")
+  auditLogs     AuditLog[]
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  color       String    @default("#dc2626")
+  order       Int       @default(0)
+  isVisible   Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  articles    Article[]
+}
+
+model Article {
+  id                  String        @id @default(cuid())
+  slug                String        @unique
+  title               String
+  summary             String
+  content             String
+  coverImage          String?
+  caption             String?
+  
+  // Relations
+  categoryId          String
+  category            Category      @relation(fields: [categoryId], references: [id])
+  authorId            String
+  author              User          @relation("UserArticles", fields: [authorId], references: [id])
+
+  status              ArticleStatus @default(DRAFT)
+  
+  // AI Generation & Integrity Metadata
+  isAiGenerated       Boolean       @default(false)
+  aiConfidenceScore   Int?
+  factCheckNotes      String?
+  conflictingFlags    String[]      @default([])
+  sourceUrl           String?
+  sourceName          String?
+
+  tags                String[]      @default([])
+  rejectionReason     String?
+  editorialNotes      String?
+
+  // Metrics
+  viewsCount          Int           @default(0)
+  sharesCount         Int           @default(0)
+  isBreaking          Boolean       @default(false)
+  isFeatured          Boolean       @default(false)
+  readingTimeMinutes  Int           @default(3)
+
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  publishedAt         DateTime?
+  reviewedBy          String?
+
+  revisions           ArticleRevision[]
+  approvals           ApprovalHistory[]
+  aiLogs              AiGenerationLog[]
+
+  @@index([status])
+  @@index([categoryId])
+  @@index([slug])
+  @@index([isAiGenerated])
+  @@index([publishedAt])
+}
+
+model ArticleRevision {
+  id          String   @id @default(cuid())
+  articleId   String
+  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  title       String
+  content     String
+  summary     String
+  editedById  String
+  createdAt   DateTime @default(now())
+}
+
+model ApprovalHistory {
+  id            String         @id @default(cuid())
+  articleId     String
+  article       Article        @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  reviewerId    String
+  reviewer      User           @relation("ReviewerApprovals", fields: [reviewerId], references: [id])
+  previousStatus ArticleStatus
+  newStatus     ArticleStatus
+  comments      String?
+  timestamp     DateTime       @default(now())
+}
+
+model AiGenerationLog {
+  id              String   @id @default(cuid())
+  articleId       String?
+  article         Article? @relation(fields: [articleId], references: [id])
+  feedUrl         String
+  rawHeadline     String
+  promptTokens    Int?
+  completionTokens Int?
+  confidenceScore Int?
+  hasFlags        Boolean  @default(false)
+  flagDetails     String?
+  generatedAt     DateTime @default(now())
+}
+
+model BreakingNews {
+  id          String    @id @default(cuid())
+  title       String
+  category    String    @default("National")
+  priority    Priority  @default(HIGH)
+  url         String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
+}
+
+model ScheduledFeed {
+  id                String   @id @default(cuid())
+  name              String
+  feedUrl           String   @unique
+  category          String
+  frequencyMinutes  Int      @default(15)
+  lastFetchedAt     DateTime @default(now())
+  status            String   @default("ACTIVE")
+  itemsProcessed    Int      @default(0)
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  actorName   String
+  actorRole   String
+  action      String
+  targetId    String?
+  targetTitle String?
+  details     String
+  timestamp   DateTime @default(now())
+}
