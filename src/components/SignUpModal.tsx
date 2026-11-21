@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { X, UserPlus, LogIn, CheckCircle, User, Lock, Mail, Phone, ArrowRight } from 'lucide-react';
 
 interface SignUpModalProps {
@@ -279,38 +278,6 @@ export default function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
                 </div>
               </div>
 
-              {mode === 'signup' && (
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">खाते का प्रकार (Account Type)</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setUserRole('reader')}
-                      className={`p-2 rounded-lg border text-left cursor-pointer transition ${
-                        userRole === 'reader'
-                          ? 'border-red-600 bg-red-50/60 text-red-900 font-semibold'
-                          : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span className="block text-[11px] font-bold">📖 पाठक (Reader)</span>
-                      <span className="block text-[10px] text-slate-500">न्यूज़ अलर्ट और पर्सनलाइज़्ड फ़ीड</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setUserRole('citizen_reporter')}
-                      className={`p-2 rounded-lg border text-left cursor-pointer transition ${
-                        userRole === 'citizen_reporter'
-                          ? 'border-red-600 bg-red-50/60 text-red-900 font-semibold'
-                          : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span className="block text-[11px] font-bold">🎙️ रिपोर्टर (Reporter)</span>
-                      <span className="block text-[10px] text-slate-500">ख़बरें व वीडियो रिपोर्ट भेजें</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -321,21 +288,6 @@ export default function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
               </button>
             </form>
           )}
-
-          {/* Quick Staff Portals - Reporter only, Admin hidden */}
-          <div className="mt-5 pt-4 border-t border-slate-200 text-center">
-            <p className="text-[11px] font-semibold text-slate-500 mb-2">रिपोर्टर पोर्टल लॉगिन:</p>
-            <div className="flex items-center justify-center space-x-2">
-              <Link
-                href="/reporter"
-                onClick={resetModal}
-                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-md border border-slate-300 transition flex items-center space-x-1"
-              >
-                <User className="w-3.5 h-3.5 text-indigo-600" />
-                <span>रिपोर्टर डेस्क (Reporter)</span>
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>
