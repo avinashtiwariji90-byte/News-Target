@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { X, UserPlus, LogIn, CheckCircle, Shield, User, Lock, Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
+import { X, UserPlus, LogIn, CheckCircle, User, Lock, Mail, Phone, ArrowRight } from 'lucide-react';
 
 interface SignUpModalProps {
   isOpen: boolean;
@@ -302,18 +302,10 @@ export default function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
             </form>
           )}
 
-          {/* Quick Staff Portals */}
+          {/* Quick Staff Portals - Reporter only, Admin hidden */}
           <div className="mt-5 pt-4 border-t border-slate-200 text-center">
-            <p className="text-[11px] font-semibold text-slate-500 mb-2">स्टाफ एवं संपादकीय पोर्टल लॉगिन:</p>
+            <p className="text-[11px] font-semibold text-slate-500 mb-2">रिपोर्टर पोर्टल लॉगिन:</p>
             <div className="flex items-center justify-center space-x-2">
-              <Link
-                href="/admin"
-                onClick={resetModal}
-                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-md border border-slate-300 transition flex items-center space-x-1"
-              >
-                <Shield className="w-3.5 h-3.5 text-red-600" />
-                <span>एडमिन डेस्क (Admin)</span>
-              </Link>
               <Link
                 href="/reporter"
                 onClick={resetModal}
