@@ -1014,6 +1014,22 @@ class DatabaseService {
     return [...this.users];
   }
 
+  public createUser(userData: Partial<User>): User {
+    const newUser: User = {
+      id: userData.id || `user-rep-${Date.now()}`,
+      name: userData.name || 'News Target Reporter',
+      email: userData.email || '',
+      role: userData.role || 'REPORTER',
+      bureau: userData.bureau || 'News Target Field Bureau',
+      avatar: userData.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+      phone: userData.phone || '',
+      isActive: true,
+      createdAt: new Date().toISOString()
+    };
+    this.users.push(newUser);
+    return newUser;
+  }
+
   // AI Feed Discovery Simulator / Real Fetcher
   public async triggerAiNewsDiscovery(): Promise<Article[]> {
     // Curated high-integrity authorized Indian news source templates

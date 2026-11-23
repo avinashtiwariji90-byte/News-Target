@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { authenticateUser, createSessionToken, SESSION_COOKIE_NAME } from '@/lib/auth';
+import { authenticateUser, createSessionToken, registerReporter, SESSION_COOKIE_NAME } from '@/lib/auth';
 import { checkRateLimit, getClientIp, stripHtmlTags } from '@/lib/security';
 
 export async function POST(request: Request) {
@@ -53,19 +53,27 @@ export async function POST(request: Request) {
       };
     } else {
       user = authenticateUser(email, password);
+      // If user not found (e.g., signup or new credentials), auto-register as Reporter!
+      if (!user) {
+        const userName = body.name || body.fullName || email.split('@')[0];
+        user = registerReporter(userName, email, password, body.phone || '');
+      }
     }
+
     if (!user) {
       return NextResponse.json(
-        { success: false, error: 'Invalid email address or password' },
+        { success: false, error: 'Authentication failed' },
         { status: 401 }
       );
     }
 
     const token = createSessionToken(user);
+    const redirectUrl = user.role === 'ADMIN' ? '/admin' : '/reporter';
     const response = NextResponse.json({
       success: true,
       message: 'Authentication successful',
       token,
+      redirectUrl,
       user: {
         id: user.id,
         name: user.name,

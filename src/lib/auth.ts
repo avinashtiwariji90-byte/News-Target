@@ -140,6 +140,28 @@ export function authenticateUser(email: string, password: string): User | null {
   return user || null;
 }
 
+export function registerReporter(name: string, email: string, password: string, phone?: string): User {
+  initUserCredentials();
+  const normalizedEmail = email.trim().toLowerCase();
+  let user = db.getUsers().find(u => u.email.toLowerCase() === normalizedEmail);
+  
+  if (!user) {
+    user = db.createUser({
+      id: `user-rep-${Date.now()}`,
+      name: name.trim() || email.split('@')[0],
+      email: normalizedEmail,
+      role: 'REPORTER',
+      bureau: phone ? `Bureau (${phone})` : 'News Target Field Bureau',
+      phone: phone || ''
+    });
+  }
+
+  const { hash, salt } = hashPassword(password);
+  userCredentialStore.set(normalizedEmail, { email: normalizedEmail, hash, salt });
+
+  return user;
+}
+
 // 5. EXTRACT AUTHENTICATED USER FROM REQUEST
 export function getAuthenticatedUser(request: Request): SessionPayload | null {
   // Check Authorization Bearer Header

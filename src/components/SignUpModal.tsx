@@ -67,55 +67,34 @@ export default function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
       return;
     }
 
-    if (mode === 'login') {
-      setIsSubmitting(true);
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-        setIsSubmitting(false);
-        if (data.success && data.user) {
-          localStorage.setItem('nt_user', JSON.stringify(data.user));
-          if (data.token) localStorage.setItem('nt_session_token', data.token);
-          if (data.user.role === 'ADMIN' || data.user.role === 'EDITOR') {
-            window.location.href = '/admin';
-            return;
-          }
-          if (data.user.role === 'REPORTER') {
-            window.location.href = '/reporter';
-            return;
-          }
-          setIsSuccess(true);
-        } else {
-          setErrorMsg(data.error || 'अमान्य क्रेडेंशियल्स (Invalid credentials).');
-        }
-      } catch (err: any) {
-        setIsSubmitting(false);
-        setErrorMsg(err.message || 'लॉगिन विफल (Login failed).');
-      }
-      return;
-    }
-
+    // Both Sign Up and Sign In directly open the Reporter Dashboard!
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSuccess(true);
-      try {
-        const userData = {
-          name: fullName || email.split('@')[0],
-          email,
-          phone,
-          role: userRole,
-          createdAt: new Date().toISOString()
-        };
-        localStorage.setItem('nt_user', JSON.stringify(userData));
-      } catch (e) {
-        // ignore
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password.trim(),
+          name: fullName.trim() || email.split('@')[0],
+          phone: phone.trim()
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.user) {
+        localStorage.setItem('nt_user', JSON.stringify(data.user));
+        if (data.token) localStorage.setItem('nt_session_token', data.token);
+        // Direct redirect to Reporter Dashboard!
+        window.location.href = data.redirectUrl || '/reporter';
+        return;
+      } else {
+        setIsSubmitting(false);
+        setErrorMsg(data.error || 'लॉगिन / साइन-अप विफल। कृपया विवरण जांचें।');
       }
-    }, 600);
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setErrorMsg(err.message || 'सेवा अनुपलब्ध है। कृपया पुनः प्रयास करें।');
+    }
   };
 
   const resetModal = () => {
