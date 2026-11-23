@@ -74,11 +74,3 @@ npm install
 npm run dev -- -p 3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-- **Main Public News Portal**: `http://localhost:3000/`
-- **Reporter Filing Desk**: `http://localhost:3000/reporter`
-- **Admin Portal**: `http://localhost:3000/admin` (Credentials: `Avinash@123` / `Avinash@123`)
-
----
-© 2026 News Target Digital Network. All rights reserved.
