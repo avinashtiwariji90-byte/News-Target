@@ -15,6 +15,7 @@ import {
   Settings,
   History,
   ArrowLeft,
+  ArrowRight,
   RefreshCw,
   ExternalLink,
   AlertTriangle,
@@ -831,6 +832,35 @@ export default function AdminDashboard() {
             COMPLIANCE: 100% HUMAN OVERSIGHT
           </span>
         </div>
+
+        {/* 3.1. REPORTER DISPATCH APPROVAL ALERT BANNER */}
+        {pendingReporterDispatches.length > 0 && (
+          <div className="bg-gradient-to-r from-amber-950/80 via-slate-900 to-slate-900 border border-amber-500/50 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs shadow-lg">
+            <div className="flex items-start space-x-3">
+              <span className="p-2 rounded-lg bg-amber-500/20 text-amber-400 shrink-0">
+                <FileText className="w-5 h-5" />
+              </span>
+              <div>
+                <p className="font-bold text-amber-200 flex items-center gap-2">
+                  <span>ग्राउंड रिपोर्टर्स द्वारा {pendingReporterDispatches.length} नई ख़बरें सबमिट की गई हैं (Pending Approval)</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-400 text-slate-950 font-extrabold animate-pulse">
+                    कार्रवाई अपेक्षित
+                  </span>
+                </p>
+                <p className="text-slate-300 text-[11px] mt-0.5">
+                  ये समाचार जनता के लिए तब तक अप्रकाशित रहेंगे जब तक आप इन्हें अनुमोदित (Approve) नहीं कर देते।
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setActiveTab('reporters')}
+              className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs transition shrink-0 cursor-pointer shadow flex items-center space-x-1.5"
+            >
+              <span>रिपोर्ट्स देखें व स्वीकृत करें ({pendingReporterDispatches.length})</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
 
         {/* 4. MAIN ADMIN SECTION TABS */}
         <section className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-md">

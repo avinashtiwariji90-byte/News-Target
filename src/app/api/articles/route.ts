@@ -146,7 +146,12 @@ export async function POST(request: Request) {
     let isFeatured = false;
     let isBreaking = false;
 
-    if (user.role === 'ADMIN' || user.role === 'EDITOR') {
+    // Submissions from reporter desk or reporters ALWAYS enter as PENDING_REVIEW:
+    if (body.isReporterSubmission || user.role === 'REPORTER') {
+      status = 'PENDING_REVIEW';
+      isFeatured = false;
+      isBreaking = false;
+    } else if (user.role === 'ADMIN' || user.role === 'EDITOR') {
       if (body.status === 'PUBLISHED') status = 'PUBLISHED';
       else if (body.status === 'DRAFT') status = 'DRAFT';
       else if (body.status === 'REJECTED') status = 'REJECTED';

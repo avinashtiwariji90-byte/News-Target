@@ -190,6 +190,7 @@ export default function ReporterPage() {
       videos,
       authorName: currentUser?.name || "News Target Reporter",
       status: "PENDING_REVIEW",
+      isReporterSubmission: true,
     };
 
     try {
