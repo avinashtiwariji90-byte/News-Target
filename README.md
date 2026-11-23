@@ -1,6 +1,9 @@
 # 🇮🇳 News Target (न्यूज़ टारगेट)
 ### AI-Assisted, Human-Verified Digital News & Media Network
 
+🌐 **Live Website Link (लाइव प्रोजेक्ट लिंक):** [https://news-target.vercel.app](https://news-target.vercel.app)
+
+[![Live Website](https://img.shields.io/badge/Live%20Website-news--target.vercel.app-success?style=for-the-badge&logo=vercel)](https://news-target.vercel.app)
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Favinashtiwariji90-byte%2FNews-Target)
 
 **News Target** is a modern, production-grade digital news portal engineered with **Next.js 16**, **TypeScript**, **Tailwind CSS**, and high-performance server-side APIs. It delivers real-time verified coverage across **Madhya Pradesh**, **Bhopal**, **National Politics**, **Sovereign AI & Deep Tech**, and **Global Affairs**.
